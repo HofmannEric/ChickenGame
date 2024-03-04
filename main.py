@@ -1,6 +1,16 @@
 import pygame
 
 
+def bild_laden(name):
+    global image
+    try:
+        image = pygame.image.load(name)
+    except pygame.error:
+        print("Cannot load image")
+        image = image.convert()
+    return image, image.get_rect()
+
+
 class SmallChicken(pygame.sprite.Sprite):
     radius = int(10)
     trueX = bool(False)
@@ -10,11 +20,15 @@ class SmallChicken(pygame.sprite.Sprite):
         super().__init__()
         self.position = (x, y)
         self.velocity = (vel_x, vel_y)
+        self.rect = bild_laden("ben_bild.png")
+        self.image = pygame.image.load("ben_bild.png")
+        self.image.get_rect()
 
     def update(self):
         self.position = (self.position[0] + self.velocity[0], self.position[1] + self.velocity[1])
 
-    def draw(self):
+    def draw(self, win):
+        win.blit(self.image, self.position)
         pygame.draw.circle(win, (255, 0, 0), self.position, self.radius)
 
     def die(self):
@@ -24,19 +38,11 @@ class SmallChicken(pygame.sprite.Sprite):
         self.position = (self.position[0] + 1, self.position[1])
 
     def posCheck(self, eventpos):
-        if self.position[0] + self.radius >= eventpos[0] >= self.position[0] - self.radius:
-            self.trueX = True
-        else:
-            self.trueX = True
-        if self.position[1] + self.radius >= eventpos[1] >= self.position[1] - self.radius:
-            self.trueY = True
-        else:
-            self.trueY = True
-
-        if self.trueY and self.trueX:
+        if self.rect.collidepoint(eventpos):
             return True
         else:
             return False
+
 
 
 pygame.init()
@@ -82,18 +88,7 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and testObj.posCheck(event.pos) == True:
             print(event.pos)
             print(testObj.position)
-            scoreInt -= 1
-
-
-
-
-
-
-
-
-
-
-
+            scoreInt += 1
 
         # if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and medium_Chicken.collidepoint(event.pos):
         #   medium_Chicken.y = 500
@@ -101,7 +96,6 @@ while run:
     testObj.move()
     # small_Chicken.x += 1
     # medium_Chicken.x += 2
-    testObj.draw()
     # pygame.draw.rect(win, (255, 0, 0), small_Chicken)
     # pygame.draw.rect(win, (255, 255, 0), medium_Chicken)
 
@@ -111,7 +105,7 @@ while run:
     text = font.render(score, True, (255, 0, 0))
     win.blit(text, (10, 10))
 
-    testObj.draw()
+    testObj.draw(win)
 
     # pygame.draw.rect(win, (255, 0, 0), small_Chicken)
     # pygame.draw.rect(win, (255, 255, 0), medium_Chicken)
