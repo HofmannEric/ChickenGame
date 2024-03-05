@@ -1,8 +1,8 @@
+import random
 import pygame
 
-
+# Define the bild_laden function
 def bild_laden(name):
-    global image
     try:
         image = pygame.image.load(name)
     except pygame.error:
@@ -10,106 +10,73 @@ def bild_laden(name):
         image = image.convert()
     return image, image.get_rect()
 
-
-class SmallChicken(pygame.sprite.Sprite):
-    radius = int(10)
-    trueX = bool(False)
-    trueY = bool(False)
-
-    def __init__(self, x, y, vel_x, vel_y):
+class Chicken(pygame.sprite.Sprite):
+    def __init__(self, image_path, x_range, y_range, velocity):
         super().__init__()
-        self.position = (x, y)
-        self.velocity = (vel_x, vel_y)
-        self.rect = bild_laden("ben_bild.png")
-        self.image = pygame.image.load("ben_bild.png")
-        self.image.get_rect()
+        self.image, self.rect = bild_laden(image_path)
+        x = random.randint(*x_range)
+        y = random.randint(*y_range)
+        self.position = pygame.Vector2(x, y)
+        self.velocity = pygame.Vector2(velocity, 0)
 
     def update(self):
-        self.position = (self.position[0] + self.velocity[0], self.position[1] + self.velocity[1])
+        self.position += self.velocity
+        self.rect.topleft = self.position
 
     def draw(self, win):
         win.blit(self.image, self.position)
-        pygame.draw.circle(win, (255, 0, 0), self.position, self.radius)
-
-    def die(self):
-        self.position = (-15, -15)
-
-    def move(self):
-        self.position = (self.position[0] + 1, self.position[1])
 
     def posCheck(self, eventpos):
-        if self.rect.collidepoint(eventpos):
-            return True
-        else:
-            return False
-
-
+        rect = self.image.get_rect(topleft=self.position)
+        return rect.collidepoint(eventpos)
 
 pygame.init()
 
 win = pygame.display.set_mode((750, 500))
+pygame.display.set_caption("Chickens Game")
 
-pygame.display.set_caption("Moving rectangle")
 scoreInt = 0
-score = "Score: " + str(scoreInt)
-ui = pygame.font.Font
-
-x = 200
-y = 200
-xx = 300
-yy = 300
-
-width = 20
-height = 20
-widthh = 25
-heightt = 25
-
 font = pygame.font.Font('freesansbold.ttf', 18)
 
-vel = 10
+vel = 4
 
 # SpriteGroups
 all_Chickens = pygame.sprite.Group()
 
-small_Chicken = pygame.Rect(x, y, width, height)
-medium_Chicken = pygame.Rect(xx, yy, widthh, heightt)
-big_Chicken = pygame.sprite.Sprite()
-# all_Chickens.add(small_Chicken)
+# Create instances of Chicken and add them to the sprite group
+chickens = [
+    Chicken("bigChickenPic.png", (1, 5), (15, 450), 3),
+    Chicken("mediumChickenPic.png", (1, 5), (150, 450), 2),
+    Chicken("BigChickenPic.png", (1, 5), (15, 450), 1)
+]
+all_Chickens.add(chickens)
 
-testObj = SmallChicken(x, y, vel, vel)
-
+# Main game loop
 run = True
+clock = pygame.time.Clock()
 
 while run:
-    pygame.time.delay(50)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and testObj.posCheck(event.pos) == True:
-            print(event.pos)
-            print(testObj.position)
-            scoreInt += 1
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            for chicken in chickens:
+                if chicken.posCheck(event.pos):
+                    chicken.kill()
+                    scoreInt += 1
 
-        # if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and medium_Chicken.collidepoint(event.pos):
-        #   medium_Chicken.y = 500
-        #   scoreInt += 1
-    testObj.move()
-    # small_Chicken.x += 1
-    # medium_Chicken.x += 2
-    # pygame.draw.rect(win, (255, 0, 0), small_Chicken)
-    # pygame.draw.rect(win, (255, 255, 0), medium_Chicken)
+    all_Chickens.update()
 
     win.fill((0, 0, 0))
-
+    current_time = int(pygame.time.get_ticks() / 1000)
+    print("Current time:", current_time)
     score = "Score: " + str(scoreInt)
     text = font.render(score, True, (255, 0, 0))
     win.blit(text, (10, 10))
 
-    testObj.draw(win)
-
-    # pygame.draw.rect(win, (255, 0, 0), small_Chicken)
-    # pygame.draw.rect(win, (255, 255, 0), medium_Chicken)
-
+    all_Chickens.draw(win)
     pygame.display.update()
+
+    clock.tick(60)
 
 pygame.quit()
