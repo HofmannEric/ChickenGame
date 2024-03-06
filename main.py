@@ -1,7 +1,7 @@
 import random
 import pygame
 
-# Define the bild_laden function
+
 def bild_laden(name):
     try:
         image = pygame.image.load(name)
@@ -9,6 +9,7 @@ def bild_laden(name):
         print("Cannot load image")
         image = image.convert()
     return image, image.get_rect()
+
 
 class Chicken(pygame.sprite.Sprite):
     def __init__(self, image_path, x_range, y_range, velocity):
@@ -30,6 +31,7 @@ class Chicken(pygame.sprite.Sprite):
         rect = self.image.get_rect(topleft=self.position)
         return rect.collidepoint(eventpos)
 
+
 pygame.init()
 
 win = pygame.display.set_mode((750, 500))
@@ -38,12 +40,16 @@ pygame.display.set_caption("Chickens Game")
 scoreInt = 0
 font = pygame.font.Font('freesansbold.ttf', 18)
 
+background = pygame.image.load("background_test.png")
+cursorImage = pygame.image.load("smallChickenPic.png")
+
+cursorImage, cursorImage_rect = bild_laden("smallChickenPic.png")
+
 vel = 4
 
 # SpriteGroups
 all_Chickens = pygame.sprite.Group()
-
-# Create instances of Chicken and add them to the sprite group
+pygame.mouse.set_visible(False)
 chickens = [
     Chicken("bigChickenPic.png", (1, 5), (15, 450), 3),
     Chicken("mediumChickenPic.png", (1, 5), (150, 450), 2),
@@ -72,9 +78,12 @@ while run:
     print("Current time:", current_time)
     score = "Score: " + str(scoreInt)
     text = font.render(score, True, (255, 0, 0))
+    win.blit(background, (0, 0))
     win.blit(text, (10, 10))
 
+    cursorImage_rect.topleft = pygame.mouse.get_pos() - pygame.Vector2(cursorImage_rect.width // 2, cursorImage_rect.height // 2)
     all_Chickens.draw(win)
+    win.blit(cursorImage, cursorImage_rect.topleft)
     pygame.display.update()
 
     clock.tick(60)
