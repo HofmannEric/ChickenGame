@@ -46,7 +46,7 @@ clock = pygame.time.Clock()
 scoreInt = 0
 font = pygame.font.Font('freesansbold.ttf', 18)
 
-background = pygame.image.load("background_test.png")
+background = pygame.image.load("../background_test.png")
 
 cursorImage, cursorImage_rect = bild_laden("crosshair.png")
 
@@ -74,11 +74,11 @@ def chickenGen():
     new_chicken = None
 
     if rand_chicken == 1:
-        new_chicken = Chicken("smallChickenPic.png", rand_spawnseite, (15, 450), vel * random.randint(3, 4))
+        new_chicken = Chicken("../smallChickenPic.png", rand_spawnseite, (15, 450), vel * random.randint(3, 4))
     elif rand_chicken == 2:
-        new_chicken = Chicken("mediumChickenPic.png", rand_spawnseite, (15, 450), vel * random.randint(2, 3))
+        new_chicken = Chicken("../mediumChickenPic.png", rand_spawnseite, (15, 450), vel * random.randint(2, 3))
     elif rand_chicken == 3:
-        new_chicken = Chicken("bigChickenPic.png", rand_spawnseite, (150, 450), vel * random.randint(1, 2))
+        new_chicken = Chicken("../bigChickenPic.png", rand_spawnseite, (150, 450), vel * random.randint(1, 2))
 
     return new_chicken
 
