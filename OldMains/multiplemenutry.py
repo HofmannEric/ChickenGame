@@ -2,6 +2,46 @@ import random
 import pygame
 
 
+class Ammo(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load("../MunitionVoll.png")
+        self.fired = False
+
+    def fire(self):
+        self.image = pygame.image.load("../MunitionLeer.png")
+        self.fired = True
+
+    def reload(self):
+        self.image = pygame.image.load("../MunitionVoll.png")
+        self.fired = False
+
+
+class Ammostack:
+    def __init__(self):
+        self.all_ammo = pygame.sprite.Group()
+        self.shots_left = 5
+
+    def gen_ammo(self):
+        count = 0
+        while count < 5:
+            self.all_ammo.add(Ammo())
+            count += 1
+
+    def count_full_ammo(self):
+        count = 0
+        for ammo in self.all_ammo:
+            if not ammo.fired:
+                count += 1
+        return count
+
+    def draw_ammostack(self, screen):
+        count = 5
+        for ammo in self.all_ammo:
+            screen.blit(ammo.image, (winSize[0] - 85 - count * (ammo.image.get_size()[0]), winSize[1] - 125))
+            count -= 1
+
+
 class Leaderboard:
     def __init__(self):
         self.font = pygame.font.Font('freesansbold.ttf', 32)
@@ -32,8 +72,8 @@ class MainMenu:
     def start_clicked(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.start_button.collidepoint(event.pos):
-                return "start_game"  # Transition to the game state
-        return None  # No state change
+                return "start_game"
+        return None
 
     def leaderboard_clicked(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -80,6 +120,7 @@ class Chicken(pygame.sprite.Sprite):
 pygame.init()
 
 win = pygame.display.set_mode((1024, 526))
+winSize = win.get_size()
 pygame.display.set_caption("Chickens Game")
 
 clock = pygame.time.Clock()
@@ -109,17 +150,23 @@ while state != "exit":
 
             background = pygame.image.load("../background_test.png")
 
-            cursorImage, cursorImage_rect = bild_laden("C:/Users/HofmannEric/Moorhuhn/crosshair.png")
+            cursorImage, cursorImage_rect = bild_laden("../crosshair.png")
+
+            ammo_pic = pygame.image.load("../MunitionVoll.png")
 
             # SpriteGroups
             all_Chickens = pygame.sprite.Group()
+
+            game_ammo = Ammostack()
+            game_ammo.gen_ammo()
+
             pygame.mouse.set_visible(False)
 
             # Main game loop
             run = True
 
             chicken_timer = 0  # Spawncounter für Chickens
-            interval_ms = 90  # zeit zwischen Spawns in ms
+            interval_ms = 90  # 90 zeit zwischen Spawns in ms
 
 
             def chickenGen():
@@ -134,13 +181,13 @@ while state != "exit":
                 new_chicken = None
 
                 if rand_chicken == 1:
-                    new_chicken = Chicken("../smallChickenPic.png", rand_spawnseite, (15, 450),
+                    new_chicken = Chicken("../smallChickenPic.png", rand_spawnseite, (15, 250),
                                           vel * random.randint(3, 4))
                 elif rand_chicken == 2:
-                    new_chicken = Chicken("../mediumChickenPic.png", rand_spawnseite, (15, 450),
+                    new_chicken = Chicken("../mediumChickenPic.png", rand_spawnseite, (15, 250),
                                           vel * random.randint(2, 3))
                 elif rand_chicken == 3:
-                    new_chicken = Chicken("../bigChickenPic.png", rand_spawnseite, (150, 450),
+                    new_chicken = Chicken("../bigChickenPic.png", rand_spawnseite, (15, 250),
                                           vel * random.randint(1, 2))
 
                 return new_chicken
@@ -152,21 +199,31 @@ while state != "exit":
                         print("Safely quit game")
                         run = False
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        for chicken in all_Chickens:
-                            if chicken.posCheck(event.pos):
-                                chicken.kill()
-                                chicken.killHitbox()
-                                scoreInt += 1
+                        if game_ammo.count_full_ammo() > 0:
+                            next_ammo = next(ammo for ammo in game_ammo.all_ammo if not ammo.fired)
+                            next_ammo.fire()
+                            for chicken in all_Chickens:
+                                if chicken.posCheck(event.pos):
+                                    chicken.kill()
+                                    chicken.killHitbox()
+                                    scoreInt += 1
+
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                        ammo_list = list(game_ammo.all_ammo)
+                        if game_ammo.count_full_ammo() < 5:
+                            next_reload = next(ammo for ammo in reversed(ammo_list) if ammo.fired)
+                            next_reload.reload()
+
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         run = False
                         state = "main_menu"
 
                 chicken_timer += clock.get_rawtime()
-                print(chicken_timer)
+                # print(chicken_timer)
                 if chicken_timer >= interval_ms:
                     spawn_chicken = chickenGen()
                     all_Chickens.add(spawn_chicken)
-                    print("spawn")
+                    # print("spawn")
                     chicken_timer = 0
                 all_Chickens.update()
 
@@ -180,6 +237,8 @@ while state != "exit":
 
                 cursorImage_rect.topleft = pygame.mouse.get_pos() - pygame.Vector2(cursorImage_rect.width // 2,
                                                                                    cursorImage_rect.height // 2)
+                # win.blit(ammo_pic, (winSize[0] - 100, winSize[1] - 125))
+                game_ammo.draw_ammostack(win)
                 all_Chickens.draw(win)
                 win.blit(cursorImage, cursorImage_rect.topleft)
                 pygame.display.update()

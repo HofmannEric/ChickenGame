@@ -38,7 +38,7 @@ class Chicken(pygame.sprite.Sprite):
 
 pygame.init()
 
-win = pygame.display.set_mode((750, 500))
+win = pygame.display.set_mode((1024, 526))
 pygame.display.set_caption("Chickens Game")
 
 clock = pygame.time.Clock()
@@ -48,7 +48,7 @@ font = pygame.font.Font('freesansbold.ttf', 18)
 
 background = pygame.image.load("../background_test.png")
 
-cursorImage, cursorImage_rect = bild_laden("crosshair.png")
+cursorImage, cursorImage_rect = bild_laden("../crosshair.png")
 
 # SpriteGroups
 all_Chickens = pygame.sprite.Group()
