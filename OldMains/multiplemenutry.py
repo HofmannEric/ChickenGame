@@ -2,15 +2,32 @@ import random
 import pygame
 
 
+class Leaderboard:
+    def __init__(self):
+        self.font = pygame.font.Font('freesansbold.ttf', 32)
+        self.leaderboard_headline = pygame.Rect(50, 300, 500, 50)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, (45, 166, 133), self.leaderboard_headline)
+        headline_text = self.font.render("Hall of Fame", True, (255, 255, 255))
+        screen.blit(headline_text, (self.leaderboard_headline.x + 25, self.leaderboard_headline.y + 10))
+
+
 class MainMenu:
     def __init__(self):
         self.font = pygame.font.Font('freesansbold.ttf', 32)
-        self.start_button = pygame.Rect(225, 225, 250, 50)
+        self.start_button = pygame.Rect(25, 200, 220, 50)
+        self.leaderboard_button = pygame.Rect(25, 260, 220, 50)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, (0, 255, 0), self.start_button)
+        mm_background = pygame.image.load("../background_test.png")
+        screen.blit(mm_background, (0, 0))
+        pygame.draw.rect(screen, (133, 166, 45), self.start_button)
+        pygame.draw.rect(screen, (166, 45, 133), self.leaderboard_button)
         start_text = self.font.render("Start Game", True, (255, 255, 255))
+        leaderboard_text = self.font.render("Leaderboard", True, (255, 255, 255))
         screen.blit(start_text, (self.start_button.x + 10, self.start_button.y + 10))
+        screen.blit(leaderboard_text, (self.leaderboard_button.x + 10, self.leaderboard_button.y + 10))
 
     def start_clicked(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -18,6 +35,13 @@ class MainMenu:
                 return "start_game"  # Transition to the game state
 
         return None  # No state change
+
+    def leaderboard_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.leaderboard_button.collidepoint(event.pos):
+                return "leaderboard"
+
+        return None
 
 
 def bild_laden(name):
@@ -57,11 +81,12 @@ class Chicken(pygame.sprite.Sprite):
 
 pygame.init()
 
-win = pygame.display.set_mode((750, 500))
+win = pygame.display.set_mode((1024, 526))
 pygame.display.set_caption("Chickens Game")
 
 clock = pygame.time.Clock()
 menu = MainMenu()
+leaderboard = Leaderboard()
 
 state = "main_menu"
 
@@ -75,13 +100,18 @@ while state != "exit":
             if state_result:
                 state = state_result
 
+        if state == "leaderboard":
+            state_result = menu.leaderboard_clicked(event)
+            if state_result:
+                state = state_result
+
         if state == "start_game":
             scoreInt = 0
             font = pygame.font.Font('freesansbold.ttf', 18)
 
             background = pygame.image.load("../background_test.png")
 
-            cursorImage, cursorImage_rect = bild_laden("crosshair.png")
+            cursorImage, cursorImage_rect = bild_laden("C:/Users/HofmannEric/Moorhuhn/crosshair.png")
 
             # SpriteGroups
             all_Chickens = pygame.sprite.Group()
@@ -106,12 +136,14 @@ while state != "exit":
                 new_chicken = None
 
                 if rand_chicken == 1:
-                    new_chicken = Chicken("../smallChickenPic.png", rand_spawnseite, (15, 450), vel * random.randint(3, 4))
+                    new_chicken = Chicken("../smallChickenPic.png", rand_spawnseite, (15, 450),
+                                          vel * random.randint(3, 4))
                 elif rand_chicken == 2:
                     new_chicken = Chicken("../mediumChickenPic.png", rand_spawnseite, (15, 450),
                                           vel * random.randint(2, 3))
                 elif rand_chicken == 3:
-                    new_chicken = Chicken("../bigChickenPic.png", rand_spawnseite, (150, 450), vel * random.randint(1, 2))
+                    new_chicken = Chicken("../bigChickenPic.png", rand_spawnseite, (150, 450),
+                                          vel * random.randint(1, 2))
 
                 return new_chicken
 
@@ -119,6 +151,7 @@ while state != "exit":
             while run:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
+                        print("Safely quit game")
                         run = False
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         for chicken in all_Chickens:
@@ -126,6 +159,9 @@ while state != "exit":
                                 chicken.kill()
                                 chicken.killHitbox()
                                 scoreInt += 1
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        run = False
+                        state = "main_menu"
 
                 chicken_timer += clock.get_rawtime()
                 print(chicken_timer)
@@ -152,8 +188,15 @@ while state != "exit":
 
                 clock.tick(60)
 
-            pygame.quit()
+            pygame.mouse.set_visible(True)
+        # pygame.quit()
 
-    win.fill((0, 0, 0))
-    if state == "main_menu":
-        menu.draw(win)
+        win.fill((0, 0, 0))
+
+        if state == "leaderboard":
+            print("draw leader")
+            leaderboard.draw(win)
+
+        if state == "main_menu":
+            menu.draw(win)
+        pygame.display.flip()  # nötig um main menu zu zeigen
