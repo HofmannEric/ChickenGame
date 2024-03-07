@@ -38,7 +38,7 @@ class Ammostack:
     def draw_ammostack(self, screen):
         count = 5
         for ammo in self.all_ammo:
-            screen.blit(ammo.image, (winSize[0] - 85 - count * (ammo.image.get_size()[0]), winSize[1] - 125))
+            screen.blit(ammo.image, (winSize[0] - 20 - count * (ammo.image.get_size()[0]), winSize[1] - 125))
             count -= 1
 
 
@@ -148,7 +148,9 @@ while state != "exit":
             scoreInt = 0
             font = pygame.font.Font('freesansbold.ttf', 18)
 
+            # Umgebungsbilder
             background = pygame.image.load("../background_test.png")
+            grass = pygame.image.load("../grass.png")
 
             cursorImage, cursorImage_rect = bild_laden("../crosshair.png")
 
@@ -166,7 +168,7 @@ while state != "exit":
             run = True
 
             chicken_timer = 0  # Spawncounter für Chickens
-            interval_ms = 90  # 90 zeit zwischen Spawns in ms
+            interval_ms = 150  # 90 zeit zwischen Spawns in ms
 
 
             def chickenGen():
@@ -176,18 +178,19 @@ while state != "exit":
 
                 rand_spawnseite = random.choice([seite_links, seite_rechts])
 
-                vel = 1 if rand_spawnseite == seite_links else -1
+                vel = 1 if rand_spawnseite == seite_links else -1  # Entscheidung der Richtung
+                side = "L" if rand_spawnseite == seite_links else "R"  # Richtige sprites für Richtung
 
                 new_chicken = None
 
                 if rand_chicken == 1:
-                    new_chicken = Chicken("../smallChickenPic.png", rand_spawnseite, (15, 250),
+                    new_chicken = Chicken("../ChickenPics/small_" + side + ".png", rand_spawnseite, (15, 250),
                                           vel * random.randint(3, 4))
                 elif rand_chicken == 2:
-                    new_chicken = Chicken("../mediumChickenPic.png", rand_spawnseite, (15, 250),
+                    new_chicken = Chicken("../ChickenPics/medium_" + side + ".png", rand_spawnseite, (15, 250),
                                           vel * random.randint(2, 3))
                 elif rand_chicken == 3:
-                    new_chicken = Chicken("../bigChickenPic.png", rand_spawnseite, (15, 250),
+                    new_chicken = Chicken("../ChickenPics/big_" + side + ".png", rand_spawnseite, (15, 250),
                                           vel * random.randint(1, 2))
 
                 return new_chicken
@@ -238,8 +241,9 @@ while state != "exit":
                 cursorImage_rect.topleft = pygame.mouse.get_pos() - pygame.Vector2(cursorImage_rect.width // 2,
                                                                                    cursorImage_rect.height // 2)
                 # win.blit(ammo_pic, (winSize[0] - 100, winSize[1] - 125))
-                game_ammo.draw_ammostack(win)
                 all_Chickens.draw(win)
+                win.blit(grass, (-200, win.get_size()[1] - 300))
+                game_ammo.draw_ammostack(win)
                 win.blit(cursorImage, cursorImage_rect.topleft)
                 pygame.display.update()
 
