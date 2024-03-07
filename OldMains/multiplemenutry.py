@@ -33,14 +33,12 @@ class MainMenu:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.start_button.collidepoint(event.pos):
                 return "start_game"  # Transition to the game state
-
         return None  # No state change
 
     def leaderboard_clicked(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.leaderboard_button.collidepoint(event.pos):
                 return "leaderboard"
-
         return None
 
 
@@ -199,4 +197,5 @@ while state != "exit":
 
         if state == "main_menu":
             menu.draw(win)
+
         pygame.display.flip()  # nötig um main menu zu zeigen
