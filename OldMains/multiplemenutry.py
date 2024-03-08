@@ -1,5 +1,6 @@
 import random
 import pygame
+import sqlite3
 
 
 class Ammo(pygame.sprite.Sprite):
@@ -42,43 +43,63 @@ class Ammostack:
             count -= 1
 
 
-class Leaderboard:
-    def __init__(self):
-        self.font = pygame.font.Font('freesansbold.ttf', 32)
-        self.leaderboard_headline = pygame.Rect(50, 300, 500, 50)
-
-    def draw(self, screen):
-        pygame.draw.rect(screen, (45, 166, 133), self.leaderboard_headline)
-        headline_text = self.font.render("Hall of Fame", True, (255, 255, 255))
-        screen.blit(headline_text, (self.leaderboard_headline.x + 25, self.leaderboard_headline.y + 10))
-
-
 class MainMenu:
-    def __init__(self):
+    def __init__(self, screen):
         self.font = pygame.font.Font('freesansbold.ttf', 32)
         self.start_button = pygame.Rect(25, 200, 220, 50)
-        self.leaderboard_button = pygame.Rect(25, 260, 220, 50)
+        self.leaderboard_title = pygame.Rect(750, 140, 220, 50)
+        self.leaderboard_placements = [
+            pygame.Rect(750, 200, 220, 35),
+            pygame.Rect(750, 240, 220, 35),
+            pygame.Rect(750, 280, 220, 35),
+            pygame.Rect(750, 320, 220, 35),
+            pygame.Rect(750, 360, 220, 35)
+        ]
+        self.Highscores = []
 
     def draw(self, screen):
         mm_background = pygame.image.load("../background_test.png")
         screen.blit(mm_background, (0, 0))
         pygame.draw.rect(screen, (133, 166, 45), self.start_button)
-        pygame.draw.rect(screen, (166, 45, 133), self.leaderboard_button)
         start_text = self.font.render("Start Game", True, (255, 255, 255))
-        leaderboard_text = self.font.render("Leaderboard", True, (255, 255, 255))
         screen.blit(start_text, (self.start_button.x + 10, self.start_button.y + 10))
-        screen.blit(leaderboard_text, (self.leaderboard_button.x + 10, self.leaderboard_button.y + 10))
+
+        self.get_highscores()
+        # drawing the Leaderboard
+
+        pygame.draw.rect(screen, (100, 100, 100), self.leaderboard_title)
+        highscore_text = self.font.render("Highscores:", True, (255, 255, 255))
+        screen.blit(highscore_text, (self.leaderboard_title.x + 10, self.leaderboard_title.y + 10))
+
+        highscore_counter = 0
+        while highscore_counter < 5:
+            pygame.draw.rect(screen, (150, 0, 0), self.leaderboard_placements[highscore_counter])
+            print("drawn rect")
+
+            if self.Highscores.__len__() > highscore_counter:
+                highscore_text_raw = str(self.Highscores[highscore_counter][1]) + " || " + \
+                                     str(self.Highscores[highscore_counter][0])
+                highscore_text = self.font.render(highscore_text_raw, True, (255, 255, 255))
+                screen.blit(highscore_text, (self.leaderboard_placements[highscore_counter].x + 5,
+                                             self.leaderboard_placements[highscore_counter].y))
+                print("blitted text")
+            highscore_counter += 1
+
+    def get_highscores(self):
+        conn = sqlite3.connect('Highscores.db')
+        cursor = conn.cursor()
+        cursor.execute(
+            '''Create Table if not exists leaderboard (id Integer PRIMARY KEY, player_name TEXT, score INTEGER)''')
+        # cursor.execute('''Insert into leaderboard (player_name, score) values ('eric', 5)''')
+        cursor.execute('''select * from leaderboard Order by score DESC LIMIT 5''')
+        self.Highscores = cursor.fetchall()
+        conn.commit()
+        conn.close()
 
     def start_clicked(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.start_button.collidepoint(event.pos):
                 return "start_game"
-        return None
-
-    def leaderboard_clicked(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if self.leaderboard_button.collidepoint(event.pos):
-                return "leaderboard"
         return None
 
 
@@ -92,13 +113,14 @@ def bild_laden(name):
 
 
 class Chicken(pygame.sprite.Sprite):
-    def __init__(self, image_path, x, y_range, velocity):
+    def __init__(self, image_path, x, y_range, velocity, chicken_score):
         super().__init__()
         self.image, self.rect = bild_laden(image_path)
         y = random.randint(
             *y_range)  # random y Koordinate, das *y_range "entpackt" quasi die beiden als (a,b) übergebenen Werte
         self.position = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(velocity, 0)
+        self.score = chicken_score
 
     def update(self):
         self.position += self.velocity
@@ -113,6 +135,9 @@ class Chicken(pygame.sprite.Sprite):
             return rect.collidepoint(eventpos)
         return False
 
+    def get_score(self):
+        return self.score
+
     def killHitbox(self):
         self.kill()
 
@@ -124,10 +149,18 @@ winSize = win.get_size()
 pygame.display.set_caption("Chickens Game")
 
 clock = pygame.time.Clock()
-menu = MainMenu()
-leaderboard = Leaderboard()
+menu = MainMenu(win)
 
 state = "main_menu"
+
+
+def save_score(save_name, save_score):
+    conn = sqlite3.connect('Highscores.db')
+    cursor = conn.cursor()
+    cursor.execute('''Insert into leaderboard (player_name, score) values (?,?)''', (save_name, save_score))
+    conn.commit()
+    conn.close()
+
 
 while state != "exit":
     for event in pygame.event.get():
@@ -136,11 +169,6 @@ while state != "exit":
 
         if state == "main_menu":
             state_result = menu.start_clicked(event)
-            if state_result:
-                state = state_result
-
-        if state == "leaderboard":
-            state_result = menu.leaderboard_clicked(event)
             if state_result:
                 state = state_result
 
@@ -166,6 +194,13 @@ while state != "exit":
 
             # Main game loop
             run = True
+            reloading = False
+
+            # Timers & Intervalle
+            # reload_timer = 0
+            # reload_interval = 15
+            reload_start_time = 0
+            reload_interval = 500
 
             chicken_timer = 0  # Spawncounter für Chickens
             interval_ms = 150  # 90 zeit zwischen Spawns in ms
@@ -185,13 +220,13 @@ while state != "exit":
 
                 if rand_chicken == 1:
                     new_chicken = Chicken("../ChickenPics/small_" + side + ".png", rand_spawnseite, (15, 250),
-                                          vel * random.randint(3, 4))
+                                          vel * random.randint(3, 4), 3)
                 elif rand_chicken == 2:
                     new_chicken = Chicken("../ChickenPics/medium_" + side + ".png", rand_spawnseite, (15, 250),
-                                          vel * random.randint(2, 3))
+                                          vel * random.randint(2, 3), 2)
                 elif rand_chicken == 3:
                     new_chicken = Chicken("../ChickenPics/big_" + side + ".png", rand_spawnseite, (15, 250),
-                                          vel * random.randint(1, 2))
+                                          vel * random.randint(1, 2), 1)
 
                 return new_chicken
 
@@ -201,7 +236,7 @@ while state != "exit":
                     if event.type == pygame.QUIT:
                         print("Safely quit game")
                         run = False
-                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and reloading is False:
                         if game_ammo.count_full_ammo() > 0:
                             next_ammo = next(ammo for ammo in game_ammo.all_ammo if not ammo.fired)
                             next_ammo.fire()
@@ -209,18 +244,20 @@ while state != "exit":
                                 if chicken.posCheck(event.pos):
                                     chicken.kill()
                                     chicken.killHitbox()
-                                    scoreInt += 1
+                                    scoreInt += chicken.get_score()
 
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                         ammo_list = list(game_ammo.all_ammo)
-                        if game_ammo.count_full_ammo() < 5:
-                            next_reload = next(ammo for ammo in reversed(ammo_list) if ammo.fired)
-                            next_reload.reload()
+                        if not reloading and game_ammo.count_full_ammo() < 5:
+                            reloading = True
+                            reload_start_time = pygame.time.get_ticks()
 
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        save_score()
                         run = False
                         state = "main_menu"
-
+                reload_time = pygame.time.get_ticks()
+                game_time_left = int(60 - pygame.time.get_ticks() / 1000)  # gametime in sekunden
                 chicken_timer += clock.get_rawtime()
                 # print(chicken_timer)
                 if chicken_timer >= interval_ms:
@@ -230,13 +267,26 @@ while state != "exit":
                     chicken_timer = 0
                 all_Chickens.update()
 
+                if reloading and game_ammo.count_full_ammo() < 5:
+                    current_time = pygame.time.get_ticks()
+                    # blit reloading text
+                    if current_time - reload_start_time >= reload_interval:
+                        next_reload = next(ammo for ammo in reversed(ammo_list) if ammo.fired)
+                        next_reload.reload()
+                        reload_start_time = current_time
+                if game_ammo.count_full_ammo() == 5:
+                    reloading = False
+
                 win.fill((0, 0, 0))
-                current_time = int(pygame.time.get_ticks() / 1000)
                 # print("Current time:", current_time)
+                reloadingText = font.render("Reloading...", True, (255, 255, 0))
                 score = "Score: " + str(scoreInt)
-                text = font.render(score, True, (255, 0, 0))
+                scoreText = font.render(score, True, (255, 255, 255))
                 win.blit(background, (0, 0))
-                win.blit(text, (10, 10))
+                win.blit(scoreText, (10, 10))
+
+                game_time_left_text = font.render("Time left:" + str(game_time_left), True, (255, 255, 255))
+                win.blit(game_time_left_text, (175, 10))
 
                 cursorImage_rect.topleft = pygame.mouse.get_pos() - pygame.Vector2(cursorImage_rect.width // 2,
                                                                                    cursorImage_rect.height // 2)
@@ -244,6 +294,14 @@ while state != "exit":
                 all_Chickens.draw(win)
                 win.blit(grass, (-200, win.get_size()[1] - 300))
                 game_ammo.draw_ammostack(win)
+
+                if reloading:
+                    win.blit(reloadingText, (winSize[0] - 175, winSize[1] - 90))
+
+                if game_time_left <= 0:
+                    run = False
+                    state = "main_menu"
+                    save_score()
                 win.blit(cursorImage, cursorImage_rect.topleft)
                 pygame.display.update()
 
@@ -253,10 +311,6 @@ while state != "exit":
         # pygame.quit()
 
         win.fill((0, 0, 0))
-
-        if state == "leaderboard":
-            print("draw leader")
-            leaderboard.draw(win)
 
         if state == "main_menu":
             menu.draw(win)
