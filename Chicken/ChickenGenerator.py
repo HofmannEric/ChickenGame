@@ -46,13 +46,13 @@ def chickenGen(screen: pygame.surface):
     new_chicken = None
 
     if rand_chicken == 1:
-        new_chicken = Chicken("ChickenPics/small_" + side + ".png", rand_spawnseite, (15, 250),
+        new_chicken = Chicken("Chicken/pics/small_" + side + ".png", rand_spawnseite, (15, 250),
                               vel * random.randint(3, 4), 3)
     elif rand_chicken == 2:
-        new_chicken = Chicken("ChickenPics/medium_" + side + ".png", rand_spawnseite, (15, 250),
+        new_chicken = Chicken("Chicken/pics/medium_" + side + ".png", rand_spawnseite, (15, 250),
                               vel * random.randint(2, 3), 2)
     elif rand_chicken == 3:
-        new_chicken = Chicken("ChickenPics/big_" + side + ".png", rand_spawnseite, (15, 250),
+        new_chicken = Chicken("Chicken/pics/big_" + side + ".png", rand_spawnseite, (15, 250),
                               vel * random.randint(1, 2), 1)
 
     return new_chicken

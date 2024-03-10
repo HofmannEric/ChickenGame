@@ -14,7 +14,7 @@ class GameOver:
         self.back_rect = pygame.Rect(298, 400, 270, 35)
 
     def draw(self, screen):
-        score_background = pygame.image.load("Background & Ammo/background_test.png")
+        score_background = pygame.image.load("Background/background_test.png")
         screen.blit(score_background, (0, 0))
 
         pygame.draw.rect(screen, (133, 0, 133), self.game_over_rect)

@@ -4,7 +4,6 @@ import pygame
 class Ammostack:
     def __init__(self):
         self.all_ammo = pygame.sprite.Group()
-        self.shots_left = 5
 
     def gen_ammo(self):
         count = 0
@@ -30,13 +29,13 @@ class Ammostack:
 class Ammo(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("Background & Ammo/MunitionVoll.png")
+        self.image = pygame.image.load("Ammo/pics/MunitionVoll.png")
         self.fired = False
 
     def fire(self):
-        self.image = pygame.image.load("Background & Ammo/MunitionLeer.png")
+        self.image = pygame.image.load("Ammo/pics/MunitionLeer.png")
         self.fired = True
 
     def reload(self):
-        self.image = pygame.image.load("Background & Ammo/MunitionVoll.png")
+        self.image = pygame.image.load("Ammo/pics/MunitionVoll.png")
         self.fired = False

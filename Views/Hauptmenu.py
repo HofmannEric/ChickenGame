@@ -17,7 +17,7 @@ class MainMenu:
         self.Highscores = []
 
     def draw(self, screen):
-        mm_background = pygame.image.load("Background & Ammo/background_test.png")
+        mm_background = pygame.image.load("Background/background_test.png")
         screen.blit(mm_background, (0, 0))
         pygame.draw.rect(screen, (133, 166, 45), self.start_button)
         start_text = self.font.render("Start Game", True, (255, 255, 255))
