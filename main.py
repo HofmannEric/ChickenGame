@@ -69,9 +69,9 @@ while state != "exit":
 
                     # wenn im spiel geschossen wird & nicht nachgeladen wird
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and reloading is False:
-                        if game_ammo.count_full_ammo() > 0:  # Falls ammo vorhanden & immer die linkeste ammo verwenden
+                        if game_ammo.count_full_ammo() > 0:  # Falls ammo vorhanden & immer die ammo ganz links benutzen
                             next_ammo = next(
-                                ammo for ammo in game_ammo.all_ammo if not ammo.fired)  # linkeste ammo suchen
+                                ammo for ammo in game_ammo.all_ammo if not ammo.fired)  # ammo links suchen
                             next_ammo.fire()  # ammo verwenden
                             for chicken in all_Chickens:
                                 if chicken.posCheck(event.pos):
@@ -88,7 +88,7 @@ while state != "exit":
                         state = "GameOver"
                         run = False
 
-                        # Timer fürs Nachladen, Chicken spawnen & verbleibende Spielzeit
+                # Timer fürs Nachladen, Chicken spawnen & verbleibende Spielzeit
                 reload_time = pygame.time.get_ticks()
                 game_time_left = int(60 - pygame.time.get_ticks() / 1000)
                 chicken_timer += clock.get_rawtime()
@@ -148,7 +148,6 @@ while state != "exit":
             # Maus im GameOver screen sichtbar machen
             pygame.mouse.set_visible(True)
 
-        # State checken sobald main-game-loop unterbrochen durch run = False
         if state == "main_menu":
             menu.draw(win)
 
